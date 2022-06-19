@@ -25,10 +25,19 @@ type Organization struct {
 }
 
 type Service struct {
-	Name       string
-	Dockerfile string
-	Region     string
-	Public     bool
+	Name     string
+	Context  string
+	Region   string
+	Public   bool
+	Database Database
+}
+
+type Database struct {
+	Name    string
+	Dialect string
+	Version int
+	Vcpu    int
+	Memory  int64
 }
 
 type Config struct {
@@ -37,7 +46,7 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	data, err := ioutil.ReadFile("./deployer.yaml")
+	data, err := ioutil.ReadFile("fabric.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +87,10 @@ func (c *Config) GetLocation(service *Service) string {
 	return fmt.Sprintf("projects/%s/locations/%s", c.Creds.ProjectId, service.Region)
 }
 
+func (c *Config) GetLocationByRegion(region string) string {
+	return fmt.Sprintf("projects/%s/locations/%s", c.Creds.ProjectId, region)
+}
+
 func (c *Config) ServicePath(service *Service) string {
 	return fmt.Sprintf("projects/%s/locations/%s/services/%s", c.Creds.ProjectId, service.Region, service.Name)
 }
@@ -92,4 +105,8 @@ func (c *Config) RepoFullPath() string {
 
 func (c *Config) ImageFullPath(service *Service) string {
 	return path.Join("us-docker.pkg.dev", c.Creds.ProjectId, c.Organization.Name, service.Name)
+}
+
+func (c *Config) GetSqlInstanceTier(service *Service) string {
+	return fmt.Sprintf("db-custom-%d-%d", service.Database.Vcpu, service.Database.Memory)
 }

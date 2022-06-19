@@ -10,25 +10,40 @@ import (
 	artifactregistrypb "google.golang.org/genproto/googleapis/devtools/artifactregistry/v1beta2"
 )
 
-func CreateArtifactory(ctx context.Context, config *Config) error {
-	client, err := artifactregistry.NewClient(ctx, option.WithCredentialsFile(config.Organization.Credsfile))
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+type ArtifactoryService struct {
+	client *artifactregistry.Client
+	config *Config
+}
 
+func NewArtifactoryService(config *Config) *ArtifactoryService {
+	client, err := artifactregistry.NewClient(context.Background(), option.WithCredentialsFile(config.Organization.Credsfile))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &ArtifactoryService{
+		client,
+		config,
+	}
+}
+
+func (as *ArtifactoryService) Close() error {
+	return as.client.Close()
+}
+
+func (a *ArtifactoryService) CreateArtifactory(ctx context.Context) error {
 	req := &artifactregistrypb.CreateRepositoryRequest{
 		// See https://pkg.go.dev/google.golang.org/genproto/googleapis/devtools/artifactregistry/v1beta2#CreateRepositoryRequest.
-		Parent:       config.RepoBasePath(),
-		RepositoryId: config.Organization.Name,
+		Parent:       a.config.RepoBasePath(),
+		RepositoryId: a.config.Organization.Name,
 		Repository: &artifactregistrypb.Repository{
-			Name:        config.RepoFullPath(),
+			Name:        a.config.RepoFullPath(),
 			Description: "The place we store things",
 			Format:      artifactregistrypb.Repository_DOCKER,
 		},
 	}
 
-	op, err := client.CreateRepository(ctx, req)
+	op, err := a.client.CreateRepository(ctx, req)
 	if err != nil {
 		if strings.Contains(err.Error(), "code = AlreadyExists") {
 			log.Println(err.Error())

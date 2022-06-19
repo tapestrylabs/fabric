@@ -1,0 +1,16 @@
+organization:
+  name: foo
+  credsfile: creds.json
+
+  services:
+    - service:
+        name: velcro
+        region: us-west1
+        context: test
+        public: true
+        database:
+          name: test
+          dialect: postgres
+          version: 12
+          vcpu: 1
+          memory: 3840

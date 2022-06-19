@@ -35,7 +35,7 @@ func PushImage(ctx context.Context, serviceName string, config *Config) error {
 		return err
 	}
 
-	resp, err := cli.ImageBuild(ctx, GetContext(service.Dockerfile), types.ImageBuildOptions{
+	resp, err := cli.ImageBuild(ctx, GetContext(service.Context), types.ImageBuildOptions{
 		Tags:        []string{config.ImageFullPath(service)},
 		ForceRemove: true,
 		NoCache:     true,
