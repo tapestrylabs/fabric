@@ -1,0 +1,10 @@
+organization:
+  name: foo
+  credsfile: creds.json
+
+  services:
+    - service:
+        name: velcro
+        region: us-west1
+        dockerfile: ./test
+        public: true
